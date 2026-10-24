@@ -1,8 +1,36 @@
+
 @import "tailwindcss";
 
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  color-scheme: dark;
+
+  --background: #0b0f14;
+  --foreground: #e5eaf1;
+
+  --surface: #111821;
+  --surface-raised: #151e29;
+  --surface-muted: #0e141c;
+
+  --line: #273241;
+  --line-strong: #364354;
+
+  --text-primary: #e5eaf1;
+  --text-secondary: #a0acbb;
+  --text-muted: #718096;
+
+  --accent: #67d5ce;
+  --accent-hover: #87e5df;
+  --accent-muted: rgba(103, 213, 206, 0.1);
+
+  --success: #42d392;
+  --warning: #f0bc67;
+  --danger: #fb8383;
+
+  --radius-panel: 14px;
+  --radius-control: 9px;
+
+  --font-body: var(--font-geist-sans), Inter, Arial, sans-serif;
+  --font-code: var(--font-geist-mono), Consolas, monospace;
 }
 
 @theme inline {
@@ -12,15 +40,287 @@
   --font-mono: var(--font-geist-mono);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: 88px;
+  background: var(--background);
 }
 
 body {
+  min-height: 100%;
+  margin: 0;
   background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: 14px;
+  line-height: 1.55;
+  font-feature-settings: "ss01" on, "cv11" on;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+button {
+  cursor: pointer;
+}
+
+button:disabled {
+  cursor: not-allowed;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+input,
+select,
+textarea {
+  color-scheme: dark;
+}
+
+::selection {
+  color: #071614;
+  background: rgba(103, 213, 206, 0.8);
+}
+
+:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+main {
+  min-width: 0;
+}
+
+/* Use one restrained foundation across every application page. */
+main[class*="bg-"] {
+  background-color: var(--background) !important;
+  background-image: none;
+}
+
+/* Remove decorative gradients and oversized ambient glow effects. */
+[class*="bg-gradient-to-"] {
+  background-color: var(--surface) !important;
+  background-image: none !important;
+}
+
+[class*="blur-3xl"] {
+  display: none !important;
+}
+
+/* Standardize panel geometry without changing page structure. */
+[class*="rounded-3xl"],
+[class*="rounded-2xl"] {
+  border-radius: var(--radius-panel) !important;
+}
+
+[class*="rounded-xl"] {
+  border-radius: var(--radius-control);
+}
+
+/* Reduce decorative glow and emphasize useful information. */
+[class*="shadow-lg"],
+[class*="shadow-xl"],
+[class*="shadow-2xl"] {
+  box-shadow: none !important;
+}
+
+/* Normalize the secondary accent so pages read as one product. */
+[class*="text-violet-"] {
+  color: #9eddd9 !important;
+}
+
+[class*="border-violet-"] {
+  border-color: rgba(103, 213, 206, 0.22) !important;
+}
+
+[class*="bg-violet-"] {
+  background-color: rgba(103, 213, 206, 0.075) !important;
+}
+
+[class*="text-sky-"] {
+  color: #a4c9f7 !important;
+}
+
+[class*="bg-sky-"] {
+  background-color: rgba(115, 165, 230, 0.09) !important;
+}
+
+/* Keep interactive controls crisp, readable, and consistent. */
+button,
+a,
+input,
+select,
+textarea {
+  transition:
+    color 140ms ease,
+    background-color 140ms ease,
+    border-color 140ms ease,
+    opacity 140ms ease;
+}
+
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #687688;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: rgba(103, 213, 206, 0.65);
+}
+
+/* Stable table and long identifier handling. */
+table {
+  border-collapse: collapse;
+}
+
+code,
+pre,
+.font-mono {
+  font-family: var(--font-code);
+  font-variant-numeric: tabular-nums;
+}
+
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+
+.break-all {
+  overflow-wrap: anywhere;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Keep scrollbars understated on long traces and result lists. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #364354 transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  border: 2px solid transparent;
+  border-radius: 8px;
+  background: #364354;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: #526176;
+  background-clip: padding-box;
+}
+
+/* Prevent animation-heavy interfaces for users who disable motion. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+
+/* Shared application navigation */
+.workspace-navigation {
+  min-height: 64px;
+  flex-shrink: 0;
+}
+
+.workspace-navigation a {
+  text-decoration: none;
+}
+
+/* The global navigation replaces the Overview-only sidebar. */
+main#overview > div > aside {
+  display: none !important;
+}
+
+/* Keep Overview's sticky toolbar below the shared navigation. */
+main#overview header.sticky {
+  top: 64px !important;
+}
+
+/* Prevent the main navigation from forcing horizontal overflow. */
+.workspace-navigation nav {
+  min-width: 0;
+}
+
+@media (max-width: 440px) {
+  .workspace-navigation > div {
+    gap: 8px;
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .workspace-navigation nav {
+    gap: 0;
+  }
+
+  .workspace-navigation nav a {
+    padding-right: 9px;
+    padding-left: 9px;
+  }
+}
+
+/* Compact page headers beneath shared navigation */
+main:not(#overview) > header > div > div:first-child > div:first-child {
+  display: none !important;
+}
+
+main:not(#overview) > header > div > div:first-child > div:last-child > p:first-child {
+  display: none !important;
+}
+
+/* Navigation links now live in the shared workspace header. */
+main:not(#overview) > header a[href="/"],
+main:not(#overview) > div > header a[href="/"],
+main:not(#overview) > div > header a[href="/regression"],
+main:not(#overview) > div > header nav {
+  display: none !important;
+}
+
+/* Maintain a clear separation between global navigation and page content. */
+.workspace-navigation + main {
+  min-width: 0;
 }

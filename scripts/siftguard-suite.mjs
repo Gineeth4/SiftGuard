@@ -1,0 +1,231 @@
+
+import { mkdir, writeFile } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+
+function getArgument(name) {
+  const index = process.argv.indexOf(name);
+  return index >= 0 ? process.argv[index + 1] : undefined;
+}
+
+const BASE_URL = (
+  getArgument("--base-url") ??
+  process.env.SIFTGUARD_BASE_URL ??
+  "http://localhost:3000"
+).replace(/\/+$/, "");
+
+const SUITE_ID =
+  getArgument("--suite") ?? process.env.SIFTGUARD_SUITE_ID;
+
+const REPORT_PATH = getArgument("--report");
+const ADMIN_TOKEN = process.env.SIFTGUARD_ADMIN_TOKEN;
+
+function fail(message, exitCode = 1) {
+  console.error(`\nSiftGuard CLI: ${message}`);
+  process.exitCode = exitCode;
+}
+
+async function requestJson(path, options = {}) {
+  const headers = {
+    Accept: "application/json",
+    ...options.headers,
+  };
+
+  if (options.body !== undefined) {
+    headers["Content-Type"] = "application/json";
+  }
+
+  if (ADMIN_TOKEN) {
+    headers["x-siftguard-admin-token"] = ADMIN_TOKEN;
+  }
+
+  let response;
+
+  try {
+    response = await fetch(`${BASE_URL}${path}`, {
+      ...options,
+      headers,
+      signal: AbortSignal.timeout(120_000),
+    });
+  } catch (error) {
+    throw new Error(
+      `Cannot reach ${BASE_URL}${path}: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+    );
+  }
+
+  const text = await response.text();
+  let payload;
+
+  try {
+    payload = text ? JSON.parse(text) : {};
+  } catch {
+    throw new Error(
+      `${path} returned invalid JSON (HTTP ${response.status}).`,
+    );
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      `${path} returned HTTP ${response.status}: ${
+        payload.error ?? text
+      }`,
+    );
+  }
+
+  if (payload.ok !== true) {
+    throw new Error(
+      `${path} reported failure: ${payload.error ?? "unknown error"}`,
+    );
+  }
+
+  return payload;
+}
+
+function printUsage() {
+  console.log(`
+SiftGuard - saved contract suite evaluator
+
+Usage:
+  node scripts/siftguard-suite.mjs --suite <suite-id>
+  node scripts/siftguard-suite.mjs --suite <suite-id> --report <file>
+
+Options:
+  --suite       Appwrite suite ID (or SIFTGUARD_SUITE_ID)
+  --base-url    SiftGuard server URL (or SIFTGUARD_BASE_URL)
+  --report      Optional JSON report destination
+  --help        Display this help message
+
+Exit codes:
+  0  All evaluated contracts passed
+  1  Evaluation failed or a contract failed
+  2  Required configuration is missing
+`);
+}
+
+async function main() {
+  if (process.argv.includes("--help")) {
+    printUsage();
+    return;
+  }
+
+  if (!SUITE_ID?.trim()) {
+    printUsage();
+    fail("Supply --suite or set SIFTGUARD_SUITE_ID.", 2);
+    return;
+  }
+
+  console.log("\nSiftGuard - Contract Release Gate");
+  console.log(`Target: ${BASE_URL}`);
+  console.log(`Suite:  ${SUITE_ID}\n`);
+
+  const health = await requestJson("/api/health");
+
+  if (health.ok !== true) {
+    throw new Error("The SiftGuard health check did not pass.");
+  }
+
+  console.log("[PASS] SiftGuard health check");
+
+  const response = await requestJson("/api/contracts/evaluate", {
+    method: "POST",
+    body: JSON.stringify({ suiteId: SUITE_ID.trim() }),
+  });
+
+  const evaluation = response.evaluation;
+
+  if (
+    !evaluation ||
+    !["passed", "failed"].includes(evaluation.status) ||
+    !Array.isArray(evaluation.results)
+  ) {
+    throw new Error(
+      "The evaluation endpoint returned an invalid evaluation report.",
+    );
+  }
+
+  console.log(`\nSuite:       ${evaluation.suiteName ?? SUITE_ID}`);
+  console.log(`Run ID:      ${evaluation.runId}`);
+  console.log(`Status:      ${evaluation.status.toUpperCase()}`);
+  console.log(`Cases:       ${evaluation.totalCases}`);
+  console.log(`Passed:      ${evaluation.passedCases}`);
+  console.log(`Failed:      ${evaluation.failedCases}`);
+  console.log(`Pass rate:   ${Number(evaluation.passRate).toFixed(1)}%`);
+  console.log(`Duration:    ${(Number(evaluation.durationMs) / 1000).toFixed(2)}s`);
+
+  console.log("\nContract results:");
+
+  for (const result of evaluation.results) {
+    const marker = result.status === "passed" ? "PASS" : "FAIL";
+
+    console.log(
+      `  [${marker}] ${result.query ?? result.testCaseId ?? "Unnamed test"}`,
+    );
+
+    if (result.failureCode || result.failureSummary) {
+      console.log(
+        `         ${result.failureCode ?? "CONTRACT_FAILURE"}: ${
+          result.failureSummary ?? "Contract expectations were not met."
+        }`,
+      );
+    }
+      if (
+      Array.isArray(result.matchedForbiddenDocuments) &&
+      result.matchedForbiddenDocuments.length > 0
+    ) {
+      console.log("         Matched forbidden documents:");
+
+      for (const document of result.matchedForbiddenDocuments) {
+        console.log(
+          `           - ${document.title} (${document.documentId})`,
+        );
+      }
+    }
+
+    if (
+      Array.isArray(result.matchedForbiddenRules) &&
+      result.matchedForbiddenRules.length > 0
+    ) {
+      console.log("         Matched forbidden rules:");
+
+      for (const rule of result.matchedForbiddenRules) {
+        console.log(
+          `           - Rule ${rule.id}: ${rule.notes} [document: ${rule.documentId}]`,
+        );
+      }
+    }}
+
+  if (REPORT_PATH) {
+    const destination = resolve(REPORT_PATH);
+
+    await mkdir(dirname(destination), { recursive: true });
+
+    await writeFile(
+      destination,
+      JSON.stringify(
+        {
+          generatedAt: new Date().toISOString(),
+          target: BASE_URL,
+          suiteId: SUITE_ID,
+          evaluation,
+        },
+        null,
+        2,
+      ) + "\n",
+      "utf8",
+    );
+
+    console.log(`\nJSON report: ${destination}`);
+  }
+
+  if (evaluation.status !== "passed" || evaluation.failedCases > 0) {
+    fail("RELEASE BLOCKED - one or more contracts failed.");
+    return;
+  }
+
+  console.log("\nRELEASE GATE PASSED - all contracts passed.");
+}
+
+main().catch((error) => {
+  fail(error instanceof Error ? error.message : String(error));
+});

@@ -1,0 +1,69 @@
+import { NextResponse } from "next/server";
+
+import { runDemoEvaluation } from "@/lib/phase2-demo";
+
+export const POST = async (request: Request) => {
+  // In production, require a dedicated token for running evaluations.
+  // For local development, this guard is not required.
+  if (process.env.NODE_ENV === "production") {
+    const expectedToken = process.env.SIFTGUARD_ADMIN_TOKEN;
+
+    const suppliedToken = request.headers.get(
+      "x-siftguard-admin-token"
+    );
+
+    if (
+      !expectedToken ||
+      !suppliedToken ||
+      suppliedToken !== expectedToken
+    ) {
+      return NextResponse.json(
+        {
+          ok: false,
+          error:
+            "Authorised evaluation access is required in production.",
+        },
+        { status: 401 }
+      );
+    }
+  }
+
+  try {
+    const result = await runDemoEvaluation();
+
+    return NextResponse.json(
+      {
+        ok: true,
+        message: "SiftGuard evaluation completed.",
+        evaluation: result,
+      },
+      {
+        status: 200,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
+    );
+  } catch (error) {
+    const message =
+      error instanceof Error
+        ? error.message
+        : "An unexpected evaluation error occurred.";
+
+    // Log the actual failure on the server, not the credentials.
+    console.error("SiftGuard evaluation failed:", message);
+
+    return NextResponse.json(
+      {
+        ok: false,
+        error: message,
+      },
+      {
+        status: 500,
+        headers: {
+          "Cache-Control": "no-store",
+        },
+      }
+    );
+  }
+};

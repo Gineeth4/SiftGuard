@@ -1,0 +1,115 @@
+{
+  "generatedAt": "2026-10-24T15:09:46.362Z",
+  "target": "http://localhost:3000",
+  "suiteId": "demo_refund_suite",
+  "evaluation": {
+    "status": "passed",
+    "runId": "6adcca38001b1b019b1a",
+    "suiteId": "demo_refund_suite",
+    "suiteName": "Support Search Quality Suite",
+    "totalCases": 4,
+    "passedCases": 4,
+    "failedCases": 0,
+    "passRate": 100,
+    "durationMs": 1686,
+    "results": [
+      {
+        "testCaseId": "6adcc55f002a0729540c",
+        "query": "How can I return an order back?",
+        "status": "passed",
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "forbiddenCount": 0,
+        "matchedForbiddenDocuments": [],
+        "matchedForbiddenRules": [],
+        "latencyMs": 28,
+        "retrieved": [
+          {
+            "documentId": "demo_refund_policy",
+            "title": "Refund and Returns Policy",
+            "score": 0.705124
+          },
+          {
+            "documentId": "demo_shipping_info",
+            "title": "Shipping and Delivery Information",
+            "score": 0.43558252
+          },
+          {
+            "documentId": "demo_warranty_info",
+            "title": "Product Warranty",
+            "score": 0.41498715
+          }
+        ]
+      },
+      {
+        "testCaseId": "demo_warranty_case",
+        "query": "What coverage do I get if my electronic device has a manufacturing defect?",
+        "status": "passed",
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "forbiddenCount": 0,
+        "matchedForbiddenDocuments": [],
+        "matchedForbiddenRules": [],
+        "latencyMs": 15,
+        "retrieved": [
+          {
+            "documentId": "demo_warranty_info",
+            "title": "Product Warranty",
+            "score": 0.79099196
+          },
+          {
+            "documentId": "demo_refund_policy",
+            "title": "Refund and Returns Policy",
+            "score": 0.52494097
+          }
+        ]
+      },
+      {
+        "testCaseId": "demo_shipping_case",
+        "query": "Where can I check when my package will arrive and track delivery?",
+        "status": "passed",
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "forbiddenCount": 0,
+        "matchedForbiddenDocuments": [],
+        "matchedForbiddenRules": [],
+        "latencyMs": 10,
+        "retrieved": [
+          {
+            "documentId": "demo_shipping_info",
+            "title": "Shipping and Delivery Information",
+            "score": 0.64858145
+          },
+          {
+            "documentId": "demo_refund_policy",
+            "title": "Refund and Returns Policy",
+            "score": 0.5219675
+          }
+        ]
+      },
+      {
+        "testCaseId": "demo_refund_case",
+        "query": "How can I return an order and get my money back?",
+        "status": "passed",
+        "recallAtK": 1,
+        "reciprocalRank": 1,
+        "forbiddenCount": 0,
+        "matchedForbiddenDocuments": [],
+        "matchedForbiddenRules": [],
+        "latencyMs": 29,
+        "retrieved": [
+          {
+            "documentId": "demo_refund_policy",
+            "title": "Refund and Returns Policy",
+            "score": 0.74923
+          },
+          {
+            "documentId": "demo_warranty_info",
+            "title": "Product Warranty",
+            "score": 0.46189815
+          }
+        ]
+      }
+    ]
+  }
+}
